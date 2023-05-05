@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/auth/dto/createUser.dto';
 import { UserModel, UserSchema } from 'src/models/user.model';
-import { genSalt, hash } from 'bcrypt';
+import { genSalt, hash, compare} from 'bcrypt';
 import { LoginUserDto } from 'src/auth/dto/loginUser.dto';
 import { toUserDto } from 'src/shared/mapper';
 import { UserDto } from './dto/user.dto';
@@ -19,10 +19,12 @@ export class UserService {
     return toUserDto(user);
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserModel | null> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserDto | null> {
     const { username, password, email } = createUserDto;
-    const isExists = await this.usersModel.findOne({email});
-    if (isExists) return null;
+    const isExists = await this.usersModel.findOne({ email }).exec();
+    if (isExists){
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+    }
 
     const salt = await genSalt(10);
     const hashPassword = await hash(password, salt);
@@ -32,10 +34,26 @@ export class UserService {
       password: hashPassword,
       email,
     });
-    return createdUser.save();
+    const user = await createdUser.save();
+    if (!user) return null;
+
+    return toUserDto(user);
   }
 
-  // async login({ email, password }: LoginUserDto): Promise<User | null> {
-  //   const user = await this.usersModel.collection;
-  // }
+  async loginUser(loginUserDto: LoginUserDto): Promise<UserDto | null> {
+    const { email, password } = loginUserDto;
+    const user = await this.usersModel.findOne({ email }).exec();
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+    }
+
+    const areEqual = await compare(password, user.password);
+
+    if (!areEqual) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    return toUserDto(user);
+  }
 }

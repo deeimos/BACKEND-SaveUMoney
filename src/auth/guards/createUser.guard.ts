@@ -16,8 +16,7 @@ export class RegGuard implements CanActivate {
 
     const isCorrectEmail = await this.authService.validateUserEmail(email);
     if (!isCorrectEmail) {
-      throw new UnauthorizedException("Пользователь с ${email} уже существует или" + 
-      "некорректный адрес электронной почты")
+      throw new UnauthorizedException("Некорректный адрес электронной почты")
     }
 
     const isCorrectName = await this.authService.validateUserName(username);
