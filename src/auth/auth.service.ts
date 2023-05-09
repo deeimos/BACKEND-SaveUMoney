@@ -8,8 +8,9 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { CreateUserStatus } from './interfaces/createUserStatus.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { LoginUserStatus } from './interfaces/loginUserStatus.interface';
-import { JwtPayload } from './interfaces/payload.interface';
+import { IJwtPayload } from './interfaces/payload.interface';
 import { getJwtConstants } from './const';
+import { UserModel } from 'src/models/user.model';
 
 @Injectable()
 export class AuthService {
@@ -64,7 +65,7 @@ export class AuthService {
     return status;
   }
 
-  async validateUser(payload: JwtPayload): Promise<UserDto> {
+  async validateUser(payload: IJwtPayload): Promise<UserDto> {
     const user = await this.userService.findByPayload(payload.email);
     if (!user) {
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
@@ -74,7 +75,7 @@ export class AuthService {
 
   private _createToken({ email }: UserDto): any {
     const expiresIn = getJwtConstants().expiresIn;
-    const user: JwtPayload = { email };
+    const user: IJwtPayload = { email };
     const accessToken = this.jwtService.sign(user);
 
     return {

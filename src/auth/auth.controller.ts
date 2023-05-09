@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, HttpException, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpStatus, HttpException, Post, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Response } from 'express';
 
 import { CreateUserDto } from './dto/createUser.dto';
@@ -10,10 +10,12 @@ import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService
+  ) { }
 
-  // guards возможно не нужны, сделать @UsePipes(new ValidationPipe())
-  @UseGuards(RegGuard)
+  // @UsePipes(new ValidationPipe()) ---------------> раскоментировать
+  @UseGuards(RegGuard) // перенести логику на frontend
   @Post('register')
   async registerUser(
     @Body() createUserDto: CreateUserDto,
@@ -27,6 +29,7 @@ export class AuthController {
     res.send(createUser);
   }
 
+  @UsePipes(new ValidationPipe())
   @Post('login')
   async loginUser(
     @Body() loginUserDto: LoginUserDto,
