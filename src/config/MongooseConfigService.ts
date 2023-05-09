@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { MongooseModuleOptions, MongooseOptionsFactory } from '@nestjs/mongoose';
+import dbConfig from './dbConfig';
 
 @Injectable()
 export class MongooseConfigService implements MongooseOptionsFactory {
   createMongooseOptions(): MongooseModuleOptions {
+    const uri = dbConfig()?.database?.url || '';
+    const dbName = dbConfig()?.database?.name || '';
+
     return {
-      uri: process.env.URL_MONGODB,
-      dbName: process.env.DB_NAME,
+      uri: uri,
+      dbName: dbName,
     }
   }
 }

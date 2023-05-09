@@ -1,4 +1,5 @@
 export interface LoginUserStatus {
-    email: string;
-    accessToken: string;
-  }
+  email: string;
+  accessToken: any;
+  expiresIn: any;
+}

@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
       useClass: MongooseConfigService,
     }),
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [config]
     }),
     UsersModule,
