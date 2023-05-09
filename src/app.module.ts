@@ -5,6 +5,7 @@ import { MongooseConfigService } from './config/MongooseConfigService';
 import config from './config/dbConfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { BillModule } from './bills/bills.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     UsersModule,
     AuthModule,
+    BillModule,
   ],
 })
 export class AppModule { }
