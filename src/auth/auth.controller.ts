@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  // guards возможно не нужны, сделать @UsePipes(new ValidationPipe())
   @UseGuards(RegGuard)
   @Post('register')
   async registerUser(
