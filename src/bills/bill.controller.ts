@@ -11,13 +11,6 @@ export class BillController {
     private readonly billService: BillService
   ) { }
 
-  @HttpCode(HttpStatus.CREATED)
-  @Post()
-  async createBill(@Req() req: any, @Body() createBillDto: CreateBillDto) {
-    const userId = req.user._id;
-    return await this.billService.createBill({ ...createBillDto, userId });
-  }
-
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   async getOneBill(@Param('id') id: string) {
@@ -29,6 +22,13 @@ export class BillController {
   async getBills(@Req() req: any) {
     const userId = req.user._id;
     return await this.billService.findAllBills(userId);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post()
+  async createBill(@Req() req: any, @Body() createBillDto: CreateBillDto) {
+    const userId = req.user._id;
+    return await this.billService.createBill({ ...createBillDto, userId });
   }
 
   @HttpCode(HttpStatus.OK)

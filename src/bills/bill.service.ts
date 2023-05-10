@@ -13,17 +13,17 @@ export class BillService {
     private billModel: Model<BillModel>,
   ) { }
 
-  async createBill(createBillDto: CreateBillDto) {
-    const createdBill = new this.billModel(createBillDto);
-    return await createdBill.save();
-  }
-
   async findOneBill(id: string) {
     return await this.billModel.findOne({ '_id': id }).exec();
   }
 
   async findAllBills(userId: any) {
     return await this.billModel.find().where('userId').in(userId).exec();
+  }
+
+  async createBill(createBillDto: CreateBillDto) {
+    const createdBill = new this.billModel(createBillDto);
+    return await createdBill.save();
   }
 
   async updateBill(id: string, updateBillDto: UpdateBillDto) {

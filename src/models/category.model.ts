@@ -9,7 +9,7 @@ export class CategoryModel extends Document implements ICategory{
 	@Prop({ required: true })
   name: string;
 
-  @Prop({ required: false })
+  @Prop({ required: true })
   description: string;
 }
 

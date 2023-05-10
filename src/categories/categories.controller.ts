@@ -10,12 +10,6 @@ export class CategoriesController {
     private readonly categoriesService: CategoriesService
   ) { }
 
-  @HttpCode(HttpStatus.CREATED)
-  @Post()
-  async createCategory(@Req() req: any, @Body() categoryDto: CategoryDto) {
-    return await this.categoriesService.createCategory(categoryDto);
-  }
-
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   async getOneCategory(@Param('id') id: string) {
@@ -26,6 +20,12 @@ export class CategoriesController {
   @Get()
   async getCategories(@Req() req: any) {
     return await this.categoriesService.findAllCategories();
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post()
+  async createCategory(@Req() req: any, @Body() categoryDto: CategoryDto) {
+    return await this.categoriesService.createCategory(categoryDto);
   }
 
   @HttpCode(HttpStatus.OK)
