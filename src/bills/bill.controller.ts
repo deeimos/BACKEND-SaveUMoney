@@ -2,15 +2,13 @@ import { Body, Controller, UseGuards, HttpCode, HttpStatus, Req, Post, Get, Para
 import { AuthGuard } from '@nestjs/passport';
 import { BillService } from './bill.service';
 import { CreateBillDto } from './dto/createBill.dto';
-import { AuthService } from 'src/auth/auth.service';
 import { UpdateBillDto } from './dto/updateBill.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('bills')
 export class BillController {
   constructor(
-    private readonly billService: BillService,
-    private readonly authService: AuthService,
+    private readonly billService: BillService
   ) { }
 
   @HttpCode(HttpStatus.CREATED)
@@ -21,16 +19,16 @@ export class BillController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Get(':id')
+  async getOneBill(@Param('id') id: string) {
+    return await this.billService.findOneBill(id);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get()
   async getBills(@Req() req: any) {
     const userId = req.user._id;
     return await this.billService.findAllBills(userId);
-  }
-
-  @HttpCode(HttpStatus.OK)
-  @Get(':id')
-  async getOneBill(@Param('id') id: string) {
-    return await this.billService.findOneBill(id);
   }
 
   @HttpCode(HttpStatus.OK)
