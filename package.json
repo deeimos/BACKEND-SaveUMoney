@@ -1,8 +1,8 @@
 {
-  "name": "nestjs_typescript",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "save_u_money",
+  "version": "0.9.0",
+  "description": "backend part",
+  "author": "deeimos",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
