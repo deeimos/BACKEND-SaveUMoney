@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Model } from 'mongoose';
@@ -13,17 +13,17 @@ export class BillService {
     private billModel: Model<BillModel>,
   ) { }
 
-  async createBill( createBillDto: CreateBillDto) {
-    const createdBill = new this.billModel(createBillDto);
-    return createdBill.save();
-  }
-
   async findOneBill(id: string) {
-    return this.billModel.findOne({ '_id': id }).exec();
+    return await this.billModel.findOne({ '_id': id }).exec();
   }
 
   async findAllBills(userId: any) {
-    return await this.billModel.find().where('_id').in(userId).exec();
+    return await this.billModel.find().where('userId').in(userId).exec();
+  }
+
+  async createBill(createBillDto: CreateBillDto) {
+    const createdBill = new this.billModel(createBillDto);
+    return await createdBill.save();
   }
 
   async updateBill(id: string, updateBillDto: UpdateBillDto) {
@@ -40,6 +40,6 @@ export class BillService {
   }
 
   async deleteBill(id: string) {
-    await this.billModel.deleteOne({ _id: id });
+    return await this.billModel.deleteOne({ _id: id });
   }
 }
