@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { isEmail } from 'class-validator';
 
-import { UserService } from 'src/users/users.service';
+import { UsersService } from 'src/users/users.service';
 import { UserDto } from 'src/users/dto/user.dto';
 import { CreateUserDto } from './dto/createUser.dto';
 import { CreateUserStatus } from './interfaces/createUserStatus.interface';
@@ -15,7 +15,7 @@ import { UserModel } from 'src/models/user.model';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService
   ) { }
 
@@ -44,7 +44,7 @@ export class AuthService {
     };
 
     try {
-      await this.userService.createUser(createUserDto);
+      await this.usersService.createUser(createUserDto);
     } catch (err) {
       status = {
         success: false,
@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   async loginUser(loginUserDto: LoginUserDto): Promise<LoginUserStatus> {
-    const user = await this.userService.loginUser(loginUserDto);
+    const user = await this.usersService.loginUser(loginUserDto);
     const token = this._createToken(user);
 
     const status: LoginUserStatus = {
@@ -66,7 +66,7 @@ export class AuthService {
   }
 
   async validateUser(payload: IJwtPayload): Promise<UserDto> {
-    const user = await this.userService.findByPayload(payload.email);
+    const user = await this.usersService.findByPayload(payload.email);
     if (!user) {
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }

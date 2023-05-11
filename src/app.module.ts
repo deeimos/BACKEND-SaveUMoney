@@ -5,7 +5,7 @@ import { MongooseConfigService } from './config/MongooseConfigService';
 import config from './config/dbConfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { BillModule } from './bills/bills.module';
+import { BillsModule } from './bills/bills.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CostsModule } from './costs/costs.module';
 
@@ -21,7 +21,7 @@ import { CostsModule } from './costs/costs.module';
     }),
     UsersModule,
     AuthModule,
-    BillModule,
+    BillsModule,
     CategoriesModule,
     CostsModule,
   ],

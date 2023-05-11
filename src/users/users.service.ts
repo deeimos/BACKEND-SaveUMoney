@@ -10,7 +10,7 @@ import { toUserDto } from 'src/shared/mapper';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectModel(UserModel.name)
     private userModel: Model<UserModel>,

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { CostController } from './costs.controller';
-import { CostService } from './costs.service';
+import { CostsController } from './costs.controller';
+import { CostsService } from './costs.service';
 import { CostModel, CostSchema } from 'src/models/cost.model';
-import { BillModule } from 'src/bills/bills.module';
+import { BillsModule } from 'src/bills/bills.module';
 
 @Module({
   imports: [
@@ -14,10 +14,10 @@ import { BillModule } from 'src/bills/bills.module';
         schema: CostSchema
       },
     ]),
-    BillModule,
+    BillsModule,
   ],
-  controllers: [CostController],
-  providers: [CostService],
+  controllers: [CostsController],
+  providers: [CostsService],
 })
 
 export class CostsModule { }
