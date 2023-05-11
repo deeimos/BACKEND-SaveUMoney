@@ -16,6 +16,7 @@ import { BillModel, BillSchema } from 'src/models/bill.model';
   ],
   controllers: [BillController],
   providers: [BillService],
+  exports: [BillService],
 })
 
 export class BillModule { }

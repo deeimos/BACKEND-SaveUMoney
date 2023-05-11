@@ -1,10 +1,10 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { ICategory } from './interfaces/category.interface';
 
 @Schema({ collection: 'categories', timestamps: true })
 export class CategoryModel extends Document implements ICategory{
-	_id: mongoose.Types.ObjectId;
+	_id: ObjectId;
 
 	@Prop({ required: true })
   name: string;
