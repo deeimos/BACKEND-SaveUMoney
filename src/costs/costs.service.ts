@@ -4,15 +4,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CostModel } from 'src/models/cost.model';
 import { CostDto } from './dto/cost.dto';
-import { BillService } from 'src/bills/bill.service';
+import { BillsService } from 'src/bills/bills.service';
 import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
 
 @Injectable()
-export class CostService {
+export class CostsService {
   constructor(
     @InjectModel(CostModel.name)
     private costModel: Model<CostModel>,
-    private billService: BillService,
+    private billsService: BillsService,
   ) { }
 
   async findOneCost(id: string) {
@@ -29,7 +29,7 @@ export class CostService {
 
   async createCost(costDto: CostDto) {
     const createdCost = new this.costModel(costDto);
-    const bill: UpdateBillDto = await this.billService.findOneBill(costDto.billId);
+    const bill: UpdateBillDto = await this.billsService.findOneBill(costDto.billId);
 
     if (bill.value < costDto.value) {
       throw new HttpException('Not enough funds on the bill', HttpStatus.BAD_REQUEST);
@@ -37,7 +37,7 @@ export class CostService {
 
     const changeValueBill = bill.value - costDto.value;
     bill.value = changeValueBill;
-    await this.billService.updateBill(costDto.billId, bill);
+    await this.billsService.updateBill(costDto.billId, bill);
     return await createdCost.save();
   }
 
@@ -45,7 +45,7 @@ export class CostService {
     const oldCost: CostDto = await this.findOneCost(id);
     if (!costDto.billId)
       costDto.billId = oldCost.billId;
-    const bill = await this.billService.findOneBill(costDto.billId);;
+    const bill = await this.billsService.findOneBill(costDto.billId);;
 
     if (!costDto.value && costDto.value !== 0) {
       costDto.value = oldCost.value;
@@ -56,15 +56,15 @@ export class CostService {
     }
 
     if (costDto.billId !== oldCost.billId) {
-      const oldBill: UpdateBillDto = await this.billService.findOneBill(oldCost.billId);
+      const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldCost.billId);
       oldBill.value = oldBill.value + oldCost.value;
       console.log(oldCost, oldBill);
-      await this.billService.updateBill(oldCost.billId, oldBill);
+      await this.billsService.updateBill(oldCost.billId, oldBill);
       bill.value = bill.value - costDto.value;
     }
     else bill.value = bill.value + oldCost.value - costDto.value;
     
-    await this.billService.updateBill(costDto.billId, bill);
+    await this.billsService.updateBill(costDto.billId, bill);
     await this.costModel.updateOne(
       { _id: id },
       {
@@ -79,11 +79,11 @@ export class CostService {
 
   async deleteCost(id: string) {
     const cost = await this.findOneCost(id);
-    const bill: UpdateBillDto = await this.billService.findOneBill(cost.billId);
+    const bill: UpdateBillDto = await this.billsService.findOneBill(cost.billId);
 
     const changeValueBill = bill.value + cost.value;
     bill.value = changeValueBill;
-    await this.billService.updateBill(cost.billId, bill);
+    await this.billsService.updateBill(cost.billId, bill);
 
     return await this.costModel.deleteOne({ _id: id });
   }

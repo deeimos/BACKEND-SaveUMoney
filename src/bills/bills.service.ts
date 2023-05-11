@@ -7,7 +7,7 @@ import { CreateBillDto } from './dto/createBill.dto';
 import { UpdateBillDto } from './dto/updateBill.dto';
 
 @Injectable()
-export class BillService {
+export class BillsService {
   constructor(
     @InjectModel(BillModel.name)
     private billModel: Model<BillModel>,
