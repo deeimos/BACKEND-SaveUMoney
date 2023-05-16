@@ -6,8 +6,9 @@ import config from './config/dbConfig';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { BillsModule } from './bills/bills.module';
-import { CategoriesModule } from './categories/categories.module';
-import { CostsModule } from './costs/costs.module';
+import { CategoriesModule} from './categories/сategories.module';
+import { ExpensesModule } from './expenses/expenses.module';
+import { IncomesModule } from './incomes/incomes.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { CostsModule } from './costs/costs.module';
     AuthModule,
     BillsModule,
     CategoriesModule,
-    CostsModule,
+    ExpensesModule,
+    IncomesModule,
   ],
 })
 export class AppModule { }

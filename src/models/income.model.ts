@@ -1,9 +1,9 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId} from 'mongoose';
-import { ICost } from './interfaces/cost.interface';
+import { IIncome } from './interfaces/income.interface';
 
 @Schema({ collection: 'costs', timestamps: true })
-export class CostModel extends Document implements ICost {
+export class IncomeModel extends Document implements IIncome {
   _id: ObjectId;
 
   @Prop({ required: true })
@@ -25,4 +25,4 @@ export class CostModel extends Document implements ICost {
   description: string;
 }
 
-export const CostSchema = SchemaFactory.createForClass(CostModel);
+export const IncomeSchema = SchemaFactory.createForClass(IncomeModel);
