@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { IncomesController } from './incomes.controller';
-import { IncomesService } from './incomes.service';
+// import { IncomesController } from './incomes.controller';
+// import { IncomesService } from './incomes.service';
 import { IncomeModel, IncomeSchema } from 'src/models/income.model';
 import { BillsModule } from 'src/bills/bills.module';
+import { IncomeCategoriesModule } from 'src/categories/incomes/incomeCategories.module';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { BillsModule } from 'src/bills/bills.module';
       },
     ]),
     BillsModule,
+    IncomeCategoriesModule,
   ],
-  controllers: [IncomesController],
-  providers: [IncomesService],
+  // controllers: [IncomesController],
+  // providers: [IncomesService],
 })
 
 export class IncomesModule { }

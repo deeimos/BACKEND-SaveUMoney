@@ -16,6 +16,7 @@ import { IncomeCategoryModel, IncomeCategorySchema } from 'src/models/incomeCate
   ],
   controllers: [IncomesCategoriesController],
   providers: [IncomesCategoriesService],
+  exports: [IncomesCategoriesService],
 })
 
 export class IncomeCategoriesModule { }

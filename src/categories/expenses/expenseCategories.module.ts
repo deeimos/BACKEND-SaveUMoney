@@ -16,6 +16,7 @@ import { ExpenseCategoryModel, ExpenseCategorySchema } from 'src/models/expenseC
   ],
   controllers: [ExpensesCategoriesController],
   providers: [ExpensesCategoriesService],
+  exports: [ExpensesCategoriesService],
 })
 
 export class ExpenseCategoriesModule { }
