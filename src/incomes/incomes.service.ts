@@ -1,191 +1,129 @@
-// import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-// import { InjectModel } from '@nestjs/mongoose';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 
-// import { Model } from 'mongoose';
-// import { IncomeModel } from 'src/models/income.model';
-// import { CreateIncomeDto } from './dto/createIncome.dto';
-// import { UpdateIncomeDto } from './dto/updateIncome.dto';
-// import { BillsService } from 'src/bills/bills.service';
-// import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
-// import { CategoryDto } from 'src/categories/dto/category.dto';
-// import { IncomesCategoriesService } from 'src/categories/incomes/incomeCategories.service';
+import { Model } from 'mongoose';
+import { IncomeModel } from 'src/models/income.model';
+import { CreateIncomeDto } from './dto/createIncome.dto';
+import { UpdateIncomeDto } from './dto/updateIncome.dto';
+import { BillsService } from 'src/bills/bills.service';
+import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
+import { CategoryDto } from 'src/categories/dto/category.dto';
+import { IncomesCategoriesService } from 'src/categories/incomes/incomeCategories.service';
+import { checkDate } from 'src/shared/checkDate';
 
-// @Injectable()
-// export class IncomesService {
-//   constructor(
-//     @InjectModel(IncomeModel.name)
-//     private incomeModel: Model<IncomeModel>,
-//     private billsService: BillsService,
-//     private incomesCategoriesService: IncomesCategoriesService,
-//   ) { }
+@Injectable()
+export class IncomesService {
+  constructor(
+    @InjectModel(IncomeModel.name)
+    private incomeModel: Model<IncomeModel>,
+    private billsService: BillsService,
+    private incomesCategoriesService: IncomesCategoriesService,
+  ) { }
 
-//   async findOneIncome(id: string) {
-//     return await this.incomeModel.findOne({ '_id': id }).exec();
-//   }
+  async findOneIncome(id: string, userId: string) {
+    const income = await this.incomeModel.findOne({ '_id': id }).exec();
 
-//   async findBillIncomes(billId: any) {
-//     return await this.incomeModel.find().where('billId').in(billId).exec();
-//   }
+    if (!income)
+      throw new HttpException('Bill not found', HttpStatus.NOT_FOUND);
 
-//   async findAllIncomes(userId: any) {
-//     return await this.incomeModel.find().where('userId').in(userId).exec();
-//   }
+    if (userId.toString() !== income.userId)
+      throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
 
-//   // async createIncome(createIncomeDto: CreateIncomeDto) {
-//   //   const createdIncome = new this.incomeModel(createIncomeDto);
-//   //   const categories = await this.incomesCategoriesService.findAllCategories();
-//   //   const bill = await this.billsService.findOneBill(createIncomeDto.billId);
+    return income;
+  }
 
-//   //   if (createIncomeDto.userId !== bill.userId) {
-//   //     throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
-//   //   }
+  async findBillIncomes(billId: any) {
+    return await this.incomeModel.find().where('billId').in(billId).exec();
+  }
 
-//   //   if (createIncomeDto.value <= 0) {
-//   //     throw new HttpException('Income must be greater than 0', HttpStatus.BAD_REQUEST);
-//   //   }
+  async findAllIncomes(userId: any) {
+    return await this.incomeModel.find().where('userId').in(userId).exec();
+  }
 
-//   //   if (!categories.some((category) => String(category._id) === createIncomeDto.categoryId)) {
-//   //     throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
-//   //   }
+  async createIncome(createIncomeDto: CreateIncomeDto) {
+    const categories = await this.incomesCategoriesService.findAllCategories();
+    const bill = await this.billsService.findOneBill(createIncomeDto.billId, createIncomeDto.userId);
 
-//   //   const changeValueBill = bill.value - createIncomeDto.value;
-//   //   bill.value = changeValueBill;
-//   //   await this.billsService.updateBill(createIncomeDto.billId, bill);
-//   //   return await createdIncome.save();
-//   // }
+    switch (true) {
+      case (createIncomeDto.userId.toString() !== bill.userId):
+        throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
 
-//   async createIncome(createIncomeDto: CreateIncomeDto) {
-//     const createdIncome = new this.incomeModel(createIncomeDto);
-//     const categories = await this.incomesCategoriesService.findAllCategories();
-//     const userId = '0';
-//     const bill = await this.billsService.findOneBill(createIncomeDto.billId, userId);
+      case (createIncomeDto.value <= 0):
+        throw new HttpException('Income must be greater than 0', HttpStatus.BAD_REQUEST);
 
-//     switch (true) {
-//       case (createIncomeDto.userId !== bill.userId):
-//         throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
+      case (!categories.some((category) => String(category._id) === createIncomeDto.categoryId)):
+        throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
 
-//       case (createIncomeDto.value <= 0):
-//         throw new HttpException('Income must be greater than 0', HttpStatus.BAD_REQUEST);
+      default:
+        const date = checkDate(createIncomeDto.date.toString());
+        if (!date)
+          throw new HttpException('Invalid date', HttpStatus.BAD_REQUEST);
+        console.log(date);
 
-//       case (!categories.some((category) => String(category._id) === createIncomeDto.categoryId)):
-//         throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
+        createIncomeDto.date = date;
+        console.log(createIncomeDto.date);
+        bill.value = bill.value + createIncomeDto.value;
+    }
 
-//       default:
-//         const changeValueBill = bill.value - createIncomeDto.value;
-//         bill.value = changeValueBill;
-//     }
+    const createdIncome = new this.incomeModel(createIncomeDto);
+    await this.billsService.updateBill(createIncomeDto.billId, createIncomeDto.userId, bill);
+    return await createdIncome.save();
+  }
 
-//     await this.billsService.updateBill(createIncomeDto.billId, userId, bill);
-//     return await createdIncome.save();
-//   }
+  async updateIncome(id: string, userId: string, updateIncomeDto: UpdateIncomeDto) {
+    const oldIncome: UpdateIncomeDto = await this.findOneIncome(id, userId);
+    const categories = await this.incomesCategoriesService.findAllCategories();
 
-//   // async updateIncome(id: string, updateIncomeDto: UpdateIncomeDto) {
-//   //   const oldIncome: UpdateIncomeDto = await this.findOneIncome(id);
-//   //   const categories = await this.incomesCategoriesService.findAllCategories();
-//   //   const bill = await this.billsService.findOneBill(updateIncomeDto.billId);
+    if (!updateIncomeDto.categoryId)
+      updateIncomeDto.categoryId = oldIncome.categoryId;
+    if (!updateIncomeDto.value && updateIncomeDto.value !== 0)
+      updateIncomeDto.value = oldIncome.value;
+    if (!updateIncomeDto.billId)
+      updateIncomeDto.billId = oldIncome.billId;
+    const bill = await this.billsService.findOneBill(updateIncomeDto.billId, userId);
 
-//   //   if (!updateIncomeDto.categoryId)
-//   //     updateIncomeDto.categoryId = oldIncome.categoryId;
-//   //   const categories = await this.incomesCategoriesService.findAllCategories();
+    switch (true) {
+      case (userId.toString() !== bill.userId):
+        throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
 
-//   //   if (!updateIncomeDto.billId)
-//   //     updateIncomeDto.billId = oldIncome.billId;
-//   //   const bill = await this.billsService.findOneBill(updateIncomeDto.billId);
+      case (!categories.some((category) => String(category._id) === updateIncomeDto.categoryId)):
+        throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
 
-//   //   if (!categories.some((category) => String(category._id) === updateIncomeDto.categoryId)) {
-//   //     throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
-//   //   }
+      case (updateIncomeDto.value <= 0):
+        throw new HttpException('income must be greater than 0', HttpStatus.BAD_REQUEST);
 
-//   //   if (!updateIncomeDto.value && updateIncomeDto.value !== 0) {
-//   //     updateIncomeDto.value = oldIncome.value;
-//   //   }
+      case (updateIncomeDto.billId !== oldIncome.billId):
+        const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldIncome.billId, userId);
+        oldBill.value = oldBill.value + oldIncome.value;
+        console.log(oldIncome, oldBill);
+        await this.billsService.updateBill(oldIncome.billId, userId, oldBill);
+        bill.value = bill.value + oldIncome.value;
 
-//   //   if (updateIncomeDto.value <= 0) {
-//   //     throw new HttpException('income must be greater than 0', HttpStatus.BAD_REQUEST);
-//   //   }
+      default:
+        bill.value = bill.value - oldIncome.value + updateIncomeDto.value;
+    }
 
-//   //   if (updateIncomeDto.billId !== oldIncome.billId) {
-//   //     const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldIncome.billId);
-//   //     oldBill.value = oldBill.value - oldIncome.value;
-//   //     console.log(oldIncome, oldBill);
-//   //     await this.billsService.updateBill(oldIncome.billId, oldBill);
-//   //     bill.value = bill.value + updateIncomeDto.value;
-//   //   }
-//   //   else bill.value = bill.value - oldIncome.value + updateIncomeDto.value;
+    await this.billsService.updateBill(updateIncomeDto.billId, userId, bill);
+    await this.incomeModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          ...updateIncomeDto
+        },
+      },
+    );
 
-//   //   await this.billsService.updateBill(updateIncomeDto.billId, bill);
-//   //   await this.incomeModel.updateOne(
-//   //     { _id: id },
-//   //     {
-//   //       $set: {
-//   //         ...updateIncomeDto
-//   //       },
-//   //     },
-//   //   );
-
-//   //   return await this.findOneIncome(id);
-//   // }
-
-//   async updateIncome(id: string, userId: string, updateIncomeDto: UpdateIncomeDto) {
-//     const oldIncome: UpdateIncomeDto = await this.findOneIncome(id);
-//     const categories = await this.incomesCategoriesService.findAllCategories();
-//     const bill = await this.billsService.findOneBill(updateIncomeDto.billId, userId);
-
-//     switch (true) {
-//       case (!updateIncomeDto.billId):
-//         updateIncomeDto.billId = oldIncome.billId;
-
-//       case (!updateIncomeDto.categoryId):
-//         updateIncomeDto.categoryId = oldIncome.categoryId;
-
-//       case (userId !== bill.userId):
-//         throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
-
-//       case (!categories.some((category) => String(category._id) === updateIncomeDto.categoryId)):
-//         throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
-
-//       case (!updateIncomeDto.value && updateIncomeDto.value !== 0):
-//         updateIncomeDto.value = oldIncome.value;
-
-//       case (updateIncomeDto.value <= 0):
-//         throw new HttpException('income must be greater than 0', HttpStatus.BAD_REQUEST);
-
-//       case (updateIncomeDto.billId !== oldIncome.billId):
-//         const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldIncome.billId, userId);
-//         oldBill.value = oldBill.value - oldIncome.value;
-//         console.log(oldIncome, oldBill);
-//         await this.billsService.updateBill(oldIncome.billId, userId, oldBill);
-//         bill.value = bill.value + updateIncomeDto.value;
-
-//       default:
-//         bill.value = bill.value - oldIncome.value + updateIncomeDto.value;
-//     }
-
-//     await this.billsService.updateBill(updateIncomeDto.billId, userId, bill);
-//     await this.incomeModel.updateOne(
-//       { _id: id },
-//       {
-//         $set: {
-//           ...updateIncomeDto
-//         },
-//       },
-//     );
-
-//     return await this.findOneIncome(id);
-//   }
+    return await this.findOneIncome(id, userId);
+  }
 
 
-//   async deleteIncome(id: string, userId: string) {
-//     const income: UpdateIncomeDto = await this.findOneIncome(id);
-//     const bill = await this.billsService.findOneBill(income.billId, userId);
-    
-//     if (userId !== bill.userId)
-//       throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
+  async deleteIncome(id: string, userId: string) {
+    const income: UpdateIncomeDto = await this.findOneIncome(id, userId);
+    const bill = await this.billsService.findOneBill(income.billId, userId);
 
-//     const changeValueBill = bill.value - income.value;
-//     bill.value = changeValueBill;
-//     await this.billsService.updateBill(income.billId, bill);
+    bill.value = bill.value - income.value;
+    await this.billsService.updateBill(income.billId, userId, bill);
 
-//     return await this.incomeModel.deleteOne({ _id: id });
-//   }
-// }
+    return await this.incomeModel.deleteOne({ _id: id });
+  }
+}

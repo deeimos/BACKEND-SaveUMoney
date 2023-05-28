@@ -2,7 +2,7 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId} from 'mongoose';
 import { IIncome } from './interfaces/income.interface';
 
-@Schema({ collection: 'costs', timestamps: true })
+@Schema({ collection: 'incomes', timestamps: true })
 export class IncomeModel extends Document implements IIncome {
   _id: ObjectId;
 

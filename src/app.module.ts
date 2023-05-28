@@ -8,8 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { BillsModule } from './bills/bills.module';
 import { ExpenseCategoriesModule } from './categories/expenses/expenseCategories.module';
 import { IncomeCategoriesModule } from './categories/incomes/incomeCategories.module';
+import { IncomesModule } from './incomes/incomes.module';
 // import { ExpensesModule } from './expenses/expenses.module';
-// import { IncomesModule } from './incomes/incomes.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { IncomeCategoriesModule } from './categories/incomes/incomeCategories.mo
     BillsModule,
     IncomeCategoriesModule,
     ExpenseCategoriesModule,
-    // IncomesModule,
+    IncomesModule,
     // ExpensesModule,
   ],
 })
