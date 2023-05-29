@@ -9,7 +9,7 @@ import { BillsModule } from './bills/bills.module';
 import { ExpenseCategoriesModule } from './categories/expenses/expenseCategories.module';
 import { IncomeCategoriesModule } from './categories/incomes/incomeCategories.module';
 import { IncomesModule } from './incomes/incomes.module';
-// import { ExpensesModule } from './expenses/expenses.module';
+import { ExpensesModule } from './expenses/expenses.module';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { IncomesModule } from './incomes/incomes.module';
     IncomeCategoriesModule,
     ExpenseCategoriesModule,
     IncomesModule,
-    // ExpensesModule,
+    ExpensesModule,
   ],
 })
 export class AppModule { }

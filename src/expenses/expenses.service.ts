@@ -1,91 +1,138 @@
-// import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-// import { InjectModel } from '@nestjs/mongoose';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 
-// import { Model } from 'mongoose';
-// import { ExpenseModel } from 'src/models/expense.model';
-// import { CreateExpenseDto } from './dto/createExpense.dto';
-// import { UpdateExpenseDto } from './dto/updateExpense.dto';
-// import { BillsService } from 'src/bills/bills.service';
-// import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
+import { Model } from 'mongoose';
+import { ExpenseModel } from 'src/models/expense.model';
+import { CreateExpenseDto } from './dto/createExpense.dto';
+import { UpdateExpenseDto } from './dto/updateExpense.dto';
+import { BillsService } from 'src/bills/bills.service';
+import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
+import { checkDate } from 'src/shared/checkDate';
+import { ExpensesCategoriesService } from 'src/categories/expenses/expenseCategories.service';
 
-// @Injectable()
-// export class ExpensesService {
-//   constructor(
-//     @InjectModel(ExpenseModel.name)
-//     private expenseModel: Model<ExpenseModel>,
-//     private billsService: BillsService,
-//   ) { }
+@Injectable()
+export class ExpensesService {
+  constructor(
+    @InjectModel(ExpenseModel.name)
+    private expenseModel: Model<ExpenseModel>,
+    private billsService: BillsService,
+    private expensesCategoriesService: ExpensesCategoriesService,
+  ) { }
 
-//   async findOneExpense(id: string) {
-//     return await this.expenseModel.findOne({ '_id': id }).exec();
-//   }
+  async findOneExpense(id: string, userId: string) {
+    const expense = await this.expenseModel.findOne({ '_id': id }).exec();
 
-//   async findBillExpenses(billId: any) {
-//     return await this.expenseModel.find().where('billId').in(billId).exec();
-//   }
+    if (!expense)
+      throw new HttpException('Bill not found', HttpStatus.NOT_FOUND);
 
-//   async findAllExpenses(userId: any) {
-//     return await this.expenseModel.find().where('userId').in(userId).exec();
-//   }
+    if (userId.toString() !== expense.userId)
+      throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
 
-//   async createExpense(createExpenseDto: CreateExpenseDto) {
-//     const createdExpense = new this.expenseModel(createExpenseDto);
-//     const bill: UpdateBillDto = await this.billsService.findOneBill(createExpenseDto.billId);
+    return expense;
+  }
 
-//     if (bill.value < createExpenseDto.value) {
-//       throw new HttpException('Not enough funds on the bill', HttpStatus.BAD_REQUEST);
-//     }
+  async findBillExpenses(billId: any) {
+    return await this.expenseModel.find().where('billId').in(billId).exec();
+  }
 
-//     const changeValueBill = bill.value - createExpenseDto.value;
-//     bill.value = changeValueBill;
-//     await this.billsService.updateBill(createExpenseDto.billId, bill);
-//     return await createdExpense.save();
-//   }
+  async findAllExpenses(userId: any) {
+    return await this.expenseModel.find().where('userId').in(userId).exec();
+  }
 
-//   async updateExpense(id: string, updateExpenseDto: UpdateExpenseDto) {
-//     const oldExpence: UpdateExpenseDto = await this.findOneExpense(id);
-//     if (!updateExpenseDto.billId)
-//       updateExpenseDto.billId = oldExpence.billId;
-//     const bill = await this.billsService.findOneBill(updateExpenseDto.billId);
+  async createExpense(createExpenseDto: CreateExpenseDto) {
+    const categories = await this.expensesCategoriesService.findAllCategories();
+    const bill = await this.billsService.findOneBill(createExpenseDto.billId, createExpenseDto.userId);
 
-//     if (!updateExpenseDto.value && updateExpenseDto.value !== 0) {
-//       updateExpenseDto.value = oldExpence.value;
-//     }
+    switch (true) {
+      case (createExpenseDto.userId.toString() !== bill.userId):
+        throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
 
-//     if (bill.value < updateExpenseDto.value) {
-//       throw new HttpException('Not enough funds on the bill', HttpStatus.BAD_REQUEST);
-//     }
+      case (createExpenseDto.value <= 0):
+        throw new HttpException('Expense must be greater than 0', HttpStatus.BAD_REQUEST);
 
-//     if (updateExpenseDto.billId !== oldExpence.billId) {
-//       const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldExpence.billId);
-//       oldBill.value = oldBill.value + oldExpence.value;
-//       console.log(oldExpence, oldBill);
-//       await this.billsService.updateBill(oldExpence.billId, oldBill);
-//       bill.value = bill.value - updateExpenseDto.value;
-//     }
-//     else bill.value = bill.value + oldExpence.value - updateExpenseDto.value;
+      case (createExpenseDto.value > bill.value):
+        throw new HttpException('bill value must be greater than expense', HttpStatus.BAD_REQUEST);
 
-//     await this.billsService.updateBill(updateExpenseDto.billId, bill);
-//     await this.expenseModel.updateOne(
-//       { _id: id },
-//       {
-//         $set: {
-//           ...updateExpenseDto
-//         },
-//       },
-//     );
+      case (!categories.some((category) => String(category._id) === createExpenseDto.categoryId)):
+        throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
 
-//     return await this.findOneExpense(id);
-//   }
+      default:
+        const date = checkDate(createExpenseDto.date.toString());
+        if (!date)
+          throw new HttpException('Invalid date', HttpStatus.BAD_REQUEST);
 
-//   async deleteExpense(id: string) {
-//     const expense: UpdateExpenseDto = await this.findOneExpense(id);
-//     const bill: UpdateBillDto = await this.billsService.findOneBill(expense.billId);
+        createExpenseDto.date = date;
+        bill.value = bill.value - createExpenseDto.value;
+    }
 
-//     const changeValueBill = bill.value + expense.value;
-//     bill.value = changeValueBill;
-//     await this.billsService.updateBill(expense.billId, bill);
+    const createdExpense = new this.expenseModel(createExpenseDto);
+    await this.billsService.updateBill(createExpenseDto.billId, createExpenseDto.userId, bill);
+    return await createdExpense.save();
+  }
 
-//     return await this.expenseModel.deleteOne({ _id: id });
-//   }
-// }
+  async updateExpense(id: string, userId: string, updateExpenseDto: UpdateExpenseDto) {
+    const oldExpence: UpdateExpenseDto = await this.findOneExpense(id, userId);
+    const categories = await this.expensesCategoriesService.findAllCategories();
+
+    if (!updateExpenseDto.categoryId)
+      updateExpenseDto.categoryId = oldExpence.categoryId;
+    if (!updateExpenseDto.value && updateExpenseDto.value !== 0)
+      updateExpenseDto.value = oldExpence.value;
+    if (!updateExpenseDto.billId)
+      updateExpenseDto.billId = oldExpence.billId;
+    const bill = await this.billsService.findOneBill(updateExpenseDto.billId, userId);
+
+    switch (true) {
+      case (userId.toString() !== bill.userId):
+        throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
+
+      case (!categories.some((category) => String(category._id) === updateExpenseDto.categoryId)):
+        throw new HttpException('Invalid categoryId', HttpStatus.BAD_REQUEST);
+
+      case (updateExpenseDto.value <= 0):
+        throw new HttpException('expense must be greater than 0', HttpStatus.BAD_REQUEST);
+
+      case (updateExpenseDto.value > bill.value):
+        throw new HttpException('bill value must be greater than expense', HttpStatus.BAD_REQUEST);
+
+      case (updateExpenseDto.billId !== oldExpence.billId):
+        const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldExpence.billId, userId);
+        oldBill.value = oldBill.value + oldExpence.value;
+        await this.billsService.updateBill(oldExpence.billId, userId, oldBill);
+        bill.value = bill.value - oldExpence.value;
+
+      default:
+        if (updateExpenseDto.date) {
+          const date = checkDate(updateExpenseDto.date.toString());
+          if (!date)
+            throw new HttpException('Invalid date', HttpStatus.BAD_REQUEST);
+          updateExpenseDto.date = date;
+        }
+
+        bill.value = bill.value + oldExpence.value - updateExpenseDto.value;
+    }
+
+    await this.billsService.updateBill(updateExpenseDto.billId, userId, bill);
+    await this.expenseModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          ...updateExpenseDto
+        },
+      },
+    );
+
+    return await this.findOneExpense(id, userId);
+  }
+
+
+  async deleteExpense(id: string, userId: string) {
+    const income: UpdateExpenseDto = await this.findOneExpense(id, userId);
+    const bill = await this.billsService.findOneBill(income.billId, userId);
+
+    bill.value = bill.value + income.value;
+    await this.billsService.updateBill(income.billId, userId, bill);
+
+    return await this.expenseModel.deleteOne({ _id: id });
+  }
+}

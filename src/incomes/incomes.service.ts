@@ -58,10 +58,8 @@ export class IncomesService {
         const date = checkDate(createIncomeDto.date.toString());
         if (!date)
           throw new HttpException('Invalid date', HttpStatus.BAD_REQUEST);
-        console.log(date);
 
         createIncomeDto.date = date;
-        console.log(createIncomeDto.date);
         bill.value = bill.value + createIncomeDto.value;
     }
 
@@ -94,12 +92,18 @@ export class IncomesService {
 
       case (updateIncomeDto.billId !== oldIncome.billId):
         const oldBill: UpdateBillDto = await this.billsService.findOneBill(oldIncome.billId, userId);
-        oldBill.value = oldBill.value + oldIncome.value;
-        console.log(oldIncome, oldBill);
+        oldBill.value = oldBill.value - oldIncome.value;
         await this.billsService.updateBill(oldIncome.billId, userId, oldBill);
         bill.value = bill.value + oldIncome.value;
 
       default:
+        if (updateIncomeDto.date) {
+          const date = checkDate(updateIncomeDto.date.toString());
+          if (!date)
+            throw new HttpException('Invalid date', HttpStatus.BAD_REQUEST);
+            updateIncomeDto.date = date;
+        }
+        
         bill.value = bill.value - oldIncome.value + updateIncomeDto.value;
     }
 
