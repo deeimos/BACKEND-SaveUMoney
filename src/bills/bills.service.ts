@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Model } from 'mongoose';
@@ -13,8 +13,16 @@ export class BillsService {
     private billModel: Model<BillModel>,
   ) { }
 
-  async findOneBill(id: string) {
-    return await this.billModel.findOne({ '_id': id }).exec();
+  async findOneBill(id: string, userId: string) {
+    const bill = await this.billModel.findOne({ '_id': id }).exec();
+
+    if (!bill)
+      throw new HttpException('Bill not found', HttpStatus.NOT_FOUND);
+
+    if (userId.toString() !== bill.userId)
+      throw new HttpException('Access error', HttpStatus.NOT_ACCEPTABLE);
+
+    return bill;
   }
 
   async findAllBills(userId: any) {
@@ -26,7 +34,8 @@ export class BillsService {
     return await createdBill.save();
   }
 
-  async updateBill(id: string, updateBillDto: UpdateBillDto) {
+  async updateBill(id: string, userId: string, updateBillDto: UpdateBillDto) {
+    await this.findOneBill(id, userId);
     await this.billModel.updateOne(
       { _id: id },
       {
@@ -36,10 +45,11 @@ export class BillsService {
       },
     );
 
-    return this.findOneBill(id);
+    return this.findOneBill(id, userId);
   }
 
-  async deleteBill(id: string) {
+  async deleteBill(id: string, userId: string) {
+    await this.findOneBill(id, userId);
     return await this.billModel.deleteOne({ _id: id });
   }
 }

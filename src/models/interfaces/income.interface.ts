@@ -1,4 +1,4 @@
-export interface ICost {
+export interface IIncome {
   userId: string;
   billId: string;
   categoryId: string;

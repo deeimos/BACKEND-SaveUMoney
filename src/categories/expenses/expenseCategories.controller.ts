@@ -1,43 +1,43 @@
 import { Body, Controller, UseGuards, HttpCode, HttpStatus, Req, Post, Get, Param, Patch, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { CategoriesService } from './categories.service';
-import { CategoryDto } from './dto/category.dto';
+import { ExpensesCategoriesService } from './expenseCategories.service';
+import { CategoryDto } from '../dto/category.dto';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('categories')
-export class CategoriesController {
+@Controller('expense-categories')
+export class ExpensesCategoriesController {
   constructor(
-    private readonly categoriesService: CategoriesService
+    private readonly expensesCategoriesService: ExpensesCategoriesService
   ) { }
 
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   async getOneCategory(@Param('id') id: string) {
-    return await this.categoriesService.findOneCategory(id);
+    return await this.expensesCategoriesService.findOneCategory(id);
   }
 
   @HttpCode(HttpStatus.OK)
   @Get()
   async getCategories(@Req() req: any) {
-    return await this.categoriesService.findAllCategories();
+    return await this.expensesCategoriesService.findAllCategories();
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post()
   async createCategory(@Req() req: any, @Body() categoryDto: CategoryDto) {
-    return await this.categoriesService.createCategory(categoryDto);
+    return await this.expensesCategoriesService.createCategory(categoryDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
   async updateCategory(@Param('id') id: string, @Body() categoryDto: CategoryDto) {
-    return await this.categoriesService.updateCategory(id, categoryDto);
+    return await this.expensesCategoriesService.updateCategory(id, categoryDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Delete(':id')
   async deleteCategory(@Param('id') id: string) {
-    const deleted = await this.categoriesService.deleteCategory(id);
-    if (deleted.deletedCount) return { "Category deleted": deleted.deletedCount };
+    const deleted = await this.expensesCategoriesService.deleteCategory(id);
+    if (deleted.deletedCount) return { "Expense category deleted": deleted.deletedCount };
   }
 }

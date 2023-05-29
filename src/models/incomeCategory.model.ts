@@ -2,8 +2,8 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId } from 'mongoose';
 import { ICategory } from './interfaces/category.interface';
 
-@Schema({ collection: 'categories', timestamps: true })
-export class CategoryModel extends Document implements ICategory{
+@Schema({ collection: 'incomeCategories', timestamps: true })
+export class IncomeCategoryModel extends Document implements ICategory{
 	_id: ObjectId;
 
 	@Prop({ required: true })
@@ -13,4 +13,4 @@ export class CategoryModel extends Document implements ICategory{
   description: string;
 }
 
-export const CategorySchema = SchemaFactory.createForClass(CategoryModel);
+export const IncomeCategorySchema = SchemaFactory.createForClass(IncomeCategoryModel);

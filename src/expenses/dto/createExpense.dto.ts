@@ -1,6 +1,10 @@
 import { IsString, IsNumber, IsNotEmpty, IsDate } from "class-validator"
 
-export class UpdateCostDto {
+export class CreateExpenseDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
   @IsString()
   @IsNotEmpty()
   billId: string;

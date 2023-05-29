@@ -13,8 +13,9 @@ export class BillsController {
 
   @HttpCode(HttpStatus.OK)
   @Get(':id')
-  async getOneBill(@Param('id') id: string) {
-    return await this.billsService.findOneBill(id);
+  async getOneBill(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user._id;
+    return await this.billsService.findOneBill(id, userId);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -33,14 +34,16 @@ export class BillsController {
 
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
-  async updateBill(@Param('id') id: string, @Body() updateBillDto: UpdateBillDto) {
-    return await this.billsService.updateBill(id, updateBillDto);
+  async updateBill(@Param('id') id: string, @Req() req: any, @Body() updateBillDto: UpdateBillDto) {
+    const userId = req.user._id;
+    return await this.billsService.updateBill(id, userId, updateBillDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Delete(':id')
-  async deleteBill(@Param('id') id: string) {
-    const deleted = await this.billsService.deleteBill(id);
+  async deleteBill(@Param('id') id: string, @Req() req: any,) {
+    const userId = req.user._id;
+    const deleted = await this.billsService.deleteBill(id, userId);
     if (deleted.deletedCount) return { "bill deleted": deleted.deletedCount };
   }
 }
