@@ -9,6 +9,7 @@ import { BillsService } from 'src/bills/bills.service';
 import { UpdateBillDto } from 'src/bills/dto/updateBill.dto';
 import { checkDate } from 'src/shared/checkDate';
 import { ExpensesCategoriesService } from 'src/categories/expenses/expenseCategories.service';
+import { GetExpensesDto } from './dto/getExpenses.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -35,8 +36,43 @@ export class ExpensesService {
     return await this.expenseModel.find().where('billId').in(billId).exec();
   }
 
-  async findAllExpenses(userId: any) {
-    return await this.expenseModel.find().where('userId').in(userId).exec();
+  // async findAllExpenses(userId: any) {
+  //   return await this.expenseModel.find().where('userId').in(userId).exec();
+  // }
+
+  async findAllExpenses(userId: any, getExpensesDto: GetExpensesDto) {
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(getExpensesDto.date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const dateParts = getExpensesDto.date.split(".");
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    const firstDayOfMonth = new Date(year, month, 1, 23, 59, 59, 999);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+
+    const pipeline = [
+      {
+        $match: {
+          userId: userId.toString(),
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$date",
+          expenses: { $push: "$$ROOT" },
+        }
+      },
+      {
+        $sort: {
+          _id: -1,
+        } as any
+      },
+    ];
+
+    return await this.expenseModel.aggregate(pipeline).exec();
   }
 
   async createExpense(createExpenseDto: CreateExpenseDto) {

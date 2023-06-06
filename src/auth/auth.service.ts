@@ -11,6 +11,7 @@ import { LoginUserStatus } from './interfaces/loginUserStatus.interface';
 import { IJwtPayload } from './interfaces/payload.interface';
 import { getJwtConstants } from './const';
 import { UserModel } from 'src/models/user.model';
+import { JwtDto } from './dto/token.dto';
 
 @Injectable()
 export class AuthService {
@@ -60,6 +61,7 @@ export class AuthService {
 
     const status: LoginUserStatus = {
       email: user.email,
+      username: user.username,
       ...token,
     }
     return status;
@@ -73,9 +75,27 @@ export class AuthService {
     return user;
   }
 
-  private _createToken({ email }: UserDto): any {
+  async getUser({ token }: JwtDto) {
+    if (!this.jwtService.verify(token)) {
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    }
+    const decodedToken = this.jwtService.decode(token);
+    if (decodedToken instanceof Object && 'email' in decodedToken && 'username' in decodedToken) {
+      const user: IJwtPayload = { email: decodedToken.email, username: decodedToken.username }
+      const expiresIn = getJwtConstants().expiresIn;
+      const accessToken = this.jwtService.sign(user);
+      return {
+        expiresIn,
+        accessToken,
+      };
+    } else {
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  private _createToken({ email, username }: UserDto): any {
     const expiresIn = getJwtConstants().expiresIn;
-    const user: IJwtPayload = { email };
+    const user: IJwtPayload = { email, username };
     const accessToken = this.jwtService.sign(user);
 
     return {

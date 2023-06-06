@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/createExpense.dto';
 import { UpdateExpenseDto } from './dto/updateExpense.dto';
+import { GetExpensesDto } from './dto/getExpenses.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('expenses')
@@ -21,9 +22,9 @@ export class ExpensesController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  async getExpenses(@Req() req: any) {
+  async getExpenses(@Req() req: any, @Body() getExpensesDto: GetExpensesDto) {
     const userId = req.user._id;
-    return await this.expensesService.findAllExpenses(userId);
+    return await this.expensesService.findAllExpenses(userId, getExpensesDto);
   }
 
   @HttpCode(HttpStatus.CREATED)
