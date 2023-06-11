@@ -1,10 +1,12 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Model } from 'mongoose';
 import { BillModel } from 'src/models/bill.model';
 import { CreateBillDto } from './dto/createBill.dto';
 import { UpdateBillDto } from './dto/updateBill.dto';
+import { IncomesService } from 'src/incomes/incomes.service';
+import { ExpensesService } from 'src/expenses/expenses.service';
 
 @Injectable()
 export class BillsService {
@@ -49,6 +51,7 @@ export class BillsService {
   }
 
   async deleteBill(id: string, userId: string) {
+
     await this.findOneBill(id, userId);
     return await this.billModel.deleteOne({ _id: id });
   }

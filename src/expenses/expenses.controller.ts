@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/createExpense.dto';
 import { UpdateExpenseDto } from './dto/updateExpense.dto';
+import { GetExpensesDto } from './dto/getExpenses.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('expenses')
@@ -20,14 +21,29 @@ export class ExpensesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get()
-  async getExpenses(@Req() req: any) {
+  @Post()
+  async getExpenses(@Req() req: any, @Body() getExpensesDto: GetExpensesDto) {
     const userId = req.user._id;
-    return await this.expensesService.findAllExpenses(userId);
+    return await this.expensesService.findAllExpenses(userId, getExpensesDto);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/total')
+  async getTotalExpenses(@Req() req: any,  @Body() getExpensesDto: GetExpensesDto) {
+    const userId = req.user._id;
+    return await this.expensesService.totalExpenses(userId, getExpensesDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/stats')
+  async getStatExpenses(@Req() req: any,  @Body() getExpensesDto: GetExpensesDto) {
+    const userId = req.user._id;
+    return await this.expensesService.statExpenses(userId, getExpensesDto);
+  }
+
+
   @HttpCode(HttpStatus.CREATED)
-  @Post()
+  @Post('/create')
   async createExpense(@Req() req: any, @Body() createExpenseDto: CreateExpenseDto) {
     const userId = req.user._id;
     return await this.expensesService.createExpense({ ...createExpenseDto, userId});

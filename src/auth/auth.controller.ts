@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, HttpException, Post, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpStatus, HttpException, Post, Res, Param, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Response } from 'express';
 
 import { CreateUserDto } from './dto/createUser.dto';
@@ -7,6 +7,7 @@ import { CreateUserStatus } from './interfaces/createUserStatus.interface';
 import { LoginUserStatus } from './interfaces/loginUserStatus.interface';
 import { LoginUserDto } from './dto/loginUser.dto';
 import { AuthService } from './auth.service';
+import { JwtDto } from './dto/token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -14,8 +15,8 @@ export class AuthController {
     private readonly authService: AuthService
   ) { }
 
-  // @UsePipes(new ValidationPipe()) ---------------> раскоментировать
-  @UseGuards(RegGuard) // перенести логику на frontend
+  @UsePipes(new ValidationPipe()) //---------------> раскоментировать
+  // @UseGuards(RegGuard) // перенести логику на frontend
   @Post('register')
   async registerUser(
     @Body() createUserDto: CreateUserDto,
@@ -36,6 +37,12 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const status: LoginUserStatus = await this.authService.loginUser(loginUserDto);
+    res.status(HttpStatus.OK).send(status);
+  }
+
+  @Post('/token')
+  async getUser(@Body() jwtDto: JwtDto, @Res() res: Response,) {
+    const status = await this.authService.getUser(jwtDto);
     res.status(HttpStatus.OK).send(status);
   }
 }

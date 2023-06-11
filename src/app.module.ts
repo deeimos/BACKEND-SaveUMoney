@@ -10,6 +10,7 @@ import { ExpenseCategoriesModule } from './categories/expenses/expenseCategories
 import { IncomeCategoriesModule } from './categories/incomes/incomeCategories.module';
 import { IncomesModule } from './incomes/incomes.module';
 import { ExpensesModule } from './expenses/expenses.module';
+import { ClearModule } from './clear/clear.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ExpensesModule } from './expenses/expenses.module';
     ExpenseCategoriesModule,
     IncomesModule,
     ExpensesModule,
+    ClearModule,
   ],
 })
 export class AppModule { }

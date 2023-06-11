@@ -11,5 +11,6 @@ export const checkDate = (value: string): Date => {
     return null;
   }
 
+  date.setHours(date.getHours() + 3);
   return date;
 }
