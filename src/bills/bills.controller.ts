@@ -39,11 +39,11 @@ export class BillsController {
     return await this.billsService.updateBill(id, userId, updateBillDto);
   }
 
-  @HttpCode(HttpStatus.OK)
-  @Delete(':id')
-  async deleteBill(@Param('id') id: string, @Req() req: any,) {
-    const userId = req.user._id;
-    const deleted = await this.billsService.deleteBill(id, userId);
-    if (deleted.deletedCount) return { "bill deleted": deleted.deletedCount };
-  }
+  // @HttpCode(HttpStatus.OK)
+  // @Delete(':id')
+  // async deleteBill(@Param('id') id: string, @Req() req: any,) {
+  //   const userId = req.user._id;
+  //   const deleted = await this.billsService.deleteBill(id, userId);
+  //   if (deleted.deletedCount) return { "bill deleted": deleted.deletedCount };
+  // }
 }

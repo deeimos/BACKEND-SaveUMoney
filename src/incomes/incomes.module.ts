@@ -20,6 +20,7 @@ import { IncomeCategoriesModule } from 'src/categories/incomes/incomeCategories.
   ],
   controllers: [IncomesController],
   providers: [IncomesService],
+  exports: [IncomesService],
 })
 
 export class IncomesModule { }

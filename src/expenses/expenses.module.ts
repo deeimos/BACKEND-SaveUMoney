@@ -20,6 +20,7 @@ import { ExpenseCategoriesModule } from 'src/categories/expenses/expenseCategori
   ],
   controllers: [ExpensesController],
   providers: [ExpensesService],
+  exports: [ExpensesService],
 })
 
 export class ExpensesModule { }

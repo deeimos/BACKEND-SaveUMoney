@@ -21,14 +21,28 @@ export class IncomesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get()
+  @Post()
   async getIncomes(@Req() req: any,  @Body() getIncomesDto: GetIncomesDto) {
     const userId = req.user._id;
     return await this.incomesService.findAllIncomes(userId, getIncomesDto);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/total')
+  async getTotalIncomes(@Req() req: any,  @Body() getIncomesDto: GetIncomesDto) {
+    const userId = req.user._id;
+    return await this.incomesService.totalIncomes(userId, getIncomesDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/stats')
+  async getStatIncomes(@Req() req: any,  @Body() getIncomesDto: GetIncomesDto) {
+    const userId = req.user._id;
+    return await this.incomesService.statIncomes(userId, getIncomesDto);
+  }
+
   @HttpCode(HttpStatus.CREATED)
-  @Post()
+  @Post('create')
   async createIncome(@Req() req: any, @Body() createIncomeDto: CreateIncomeDto) {
     const userId = req.user._id;
     return await this.incomesService.createIncome({ ...createIncomeDto, userId });

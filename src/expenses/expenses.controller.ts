@@ -21,14 +21,29 @@ export class ExpensesController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get()
+  @Post()
   async getExpenses(@Req() req: any, @Body() getExpensesDto: GetExpensesDto) {
     const userId = req.user._id;
     return await this.expensesService.findAllExpenses(userId, getExpensesDto);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('/total')
+  async getTotalExpenses(@Req() req: any,  @Body() getExpensesDto: GetExpensesDto) {
+    const userId = req.user._id;
+    return await this.expensesService.totalExpenses(userId, getExpensesDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/stats')
+  async getStatExpenses(@Req() req: any,  @Body() getExpensesDto: GetExpensesDto) {
+    const userId = req.user._id;
+    return await this.expensesService.statExpenses(userId, getExpensesDto);
+  }
+
+
   @HttpCode(HttpStatus.CREATED)
-  @Post()
+  @Post('/create')
   async createExpense(@Req() req: any, @Body() createExpenseDto: CreateExpenseDto) {
     const userId = req.user._id;
     return await this.expensesService.createExpense({ ...createExpenseDto, userId});

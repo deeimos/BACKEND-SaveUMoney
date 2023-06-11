@@ -62,7 +62,7 @@ export class ExpensesService {
       {
         $group: {
           _id: "$date",
-          expenses: { $push: "$$ROOT" },
+          actions: { $push: "$$ROOT" },
         }
       },
       {
@@ -74,6 +74,81 @@ export class ExpensesService {
 
     return await this.expenseModel.aggregate(pipeline).exec();
   }
+
+  async totalExpenses(userId: any, getExpensesDto: GetExpensesDto) {
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(getExpensesDto.date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const dateParts = getExpensesDto.date.split(".");
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    const firstDayOfMonth = new Date(year, month, 1, 23, 59, 59, 999);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+
+    const pipeline = [
+      {
+        $match: {
+          userId: userId.toString(),
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$date",
+          actions: { $sum: "$value" },
+        }
+      },
+      {
+        $sort: {
+          _id: 1,
+        } as any
+      },
+    ];
+    const result = await this.expenseModel.aggregate(pipeline).exec();
+    const total = result.reduce((acc, cur) => acc + (cur.actions || 0), 0);
+    const actions = result.map(({ _id, actions }) => ({ _id, value: actions }));
+
+    return { actions, total };
+  }
+
+  async statExpenses(userId: string, getExpensesDto: GetExpensesDto) {
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(getExpensesDto.date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const dateParts = getExpensesDto.date.split(".");
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    const firstDayOfMonth = new Date(year, month, 1, 23, 59, 59, 999);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+
+
+     const pipeline = [
+      {
+        $match: {
+          userId: userId.toString(),
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$categoryId",
+          actions: { $sum: "$value" },
+        }
+      },
+      {
+        $sort: {
+          _id: 1,
+        } as any
+      },
+    ];
+
+    return await this.expenseModel.aggregate(pipeline).exec();
+  }
+  
 
   async createExpense(createExpenseDto: CreateExpenseDto) {
     const categories = await this.expensesCategoriesService.findAllCategories();
@@ -170,5 +245,10 @@ export class ExpensesService {
     await this.billsService.updateBill(income.billId, userId, bill);
 
     return await this.expenseModel.deleteOne({ _id: id });
+  }
+
+  async deleteExpensesBillId(billId: string, userId: string) {
+    await this.billsService.findOneBill(billId, userId);
+    return await this.expenseModel.deleteMany({ billId: billId });;
   }
 }

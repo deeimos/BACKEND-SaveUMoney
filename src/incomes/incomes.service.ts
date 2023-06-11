@@ -86,12 +86,88 @@ export class IncomesService {
       {
         $group: {
           _id: "$date", // группируем по полю "date"
-          incomes: { $push: "$$ROOT" }, // сохраняем все поля документа в массив "incomes"
+          actions: { $push: "$$ROOT" }, // сохраняем все поля документа в массив "incomes"
         }
       },
       {
         $sort: {
           _id: -1,
+        } as any
+      },
+    ];
+
+    return await this.incomeModel.aggregate(pipeline).exec();
+  }
+
+  async totalIncomes(userId: string, getIncomesDto: GetIncomesDto) {
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(getIncomesDto.date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const dateParts = getIncomesDto.date.split(".");
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    const firstDayOfMonth = new Date(year, month, 1, 23, 59, 59, 999);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+
+
+    const pipeline = [
+      {
+        $match: {
+          userId: userId.toString(),
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$date",
+          actions: { $sum: "$value" },
+        }
+      },
+      {
+        $sort: {
+          _id: 1,
+        } as any
+      },
+    ];
+
+    const result = await this.incomeModel.aggregate(pipeline).exec();
+    const total = result.reduce((acc, cur) => acc + (cur.actions || 0), 0);
+    const actions = result.map(({ _id, actions }) => ({ _id, value: actions }));
+
+    return { actions, total };
+  }
+
+  async statIncomes(userId: string, getIncomesDto: GetIncomesDto) {
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(getIncomesDto.date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const dateParts = getIncomesDto.date.split(".");
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    const firstDayOfMonth = new Date(year, month, 1, 23, 59, 59, 999);
+    const lastDayOfMonth = new Date(year, month + 1, 1);
+
+
+     const pipeline = [
+      {
+        $match: {
+          userId: userId.toString(),
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$categoryId",
+          actions: { $sum: "$value" },
+        }
+      },
+      {
+        $sort: {
+          _id: 1,
         } as any
       },
     ];
@@ -195,5 +271,10 @@ export class IncomesService {
     await this.billsService.updateBill(income.billId, userId, bill);
 
     return await this.incomeModel.deleteOne({ _id: id });
+  }
+
+  async deleteIncomesBillId(billId: string, userId: string) {
+    this.billsService.findOneBill(billId, userId);
+    return await this.incomeModel.deleteMany({ billId: billId });;
   }
 }
